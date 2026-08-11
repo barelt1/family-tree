@@ -28,7 +28,7 @@
     <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-amber-200 text-center">
       <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">🔒</div>
       <h1 class="text-2xl font-bold text-gray-800 mb-2">עץ משפחת לוי / אזולאי</h1>
-      <p class="text-gray-600 mb-6 text-sm">אנא הזן את הסיסמה המשפחתית כדי לצפות بعץ המשפחה</p>
+      <p class="text-gray-600 mb-6 text-sm">אנא הזן את הסיסמה המשפחתית כדי לצפות בעץ המשפחה</p>
       <form onsubmit="checkPassword(event)" class="space-y-4">
         <input type="password" id="pass-input" placeholder="הכנס סיסמה..." class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 text-center text-lg outline-none">
         <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-3 rounded-xl transition shadow-md">כניסה לאתר</button>
@@ -37,50 +37,68 @@
     </div>
   </div>
 
-  <!-- תוכן האתר והעץ -->
+  <!-- כותרת עליונה -->
   <header class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
     <div>
       <h1 class="text-xl font-bold text-gray-800">עץ משפחת לוי - מורשת אסתר</h1>
       <p class="text-xs text-gray-500">עץ אינטראקטיבי דיגיטלי</p>
     </div>
+    <div class="flex gap-2">
+      <button onclick="exportData()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-medium transition shadow-sm">
+        📥 הורד גיבוי נתונים
+      </button>
+      <button onclick="resetData()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs px-3 py-2 rounded-lg font-medium transition">
+        🔄 איפוס לברירת מחדל
+      </button>
+    </div>
   </header>
 
+  <!-- אזור העץ -->
   <main class="flex-1 overflow-auto p-8 flex justify-center items-start">
     <div class="tree" id="tree-root"></div>
   </main>
 
-  <!-- פאנל פרטים אישי -->
+  <!-- פאנל פרטים ועריכה צדדי -->
   <div id="side-panel" class="fixed inset-y-0 left-0 w-80 bg-white shadow-2xl border-r border-gray-200 p-6 z-40 transform -translate-x-full transition-transform duration-300 overflow-y-auto">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-lg font-bold text-gray-800">כרטיס חבר משפחה</h2>
+      <h2 class="text-lg font-bold text-gray-800" id="panel-title">כרטיס חבר משפחה</h2>
       <button onclick="closePanel()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
     </div>
     <div id="panel-content" class="space-y-4"></div>
   </div>
 
   <script>
-    const PASSWORD = "1234"; // סיסמה משפחתית ברירת מחדל
+    const PASSWORD = "1234";
 
-    const familyTree = {
+    const defaultTree = {
+      id: "root",
       name: "אסתר",
       isDirect: true,
       isDeceased: true,
       city: "ירושלים",
       spouse: "חנני בן עמי",
       children: [
-        { name: "ברכה", isDirect: true, city: "ירושלים", spouse: "מרדכי ודעי ז\"ל", children: [{ name: "סעדיה" }, { name: "אילנה" }, { name: "דוד" }] },
-        { name: "יעקב ז\"ל", isDirect: true, isDeceased: true, city: "עפולה", spouse: "מרים", children: [{ name: "יאיר" }, { name: "רונלית" }, { name: "עופר" }] },
-        { name: "מרים", isDirect: true, city: "ירושלים", spouse: "יוסי לוי ז\"ל", children: [{ name: "אילן", spouse: "מירי" }, { name: "גבי", spouse: "אורה" }, { name: "סיגל", spouse: "שבי נביא" }] },
-        { name: "פנינה", isDirect: true, city: "ירושלים", spouse: "קלוד דרמוני" },
-        { name: "עמירם", isDirect: true, city: "ירושלים", spouse: "שמחה" },
-        { name: "שושנה", isDirect: true, city: "באר שבע - ברזיל", spouse: "ג'ימי" },
-        { name: "רחל", isDirect: true, city: "מושב פצאל", spouse: "אליהו אבוטבול ז\"ל" },
-        { name: "דוד", isDirect: true, city: "באר שבע", spouse: "נילה" },
-        { name: "סימה", isDirect: true, city: "רחובות - ארה\"ב", spouse: "שלום קיסר" },
-        { name: "בת שבע", isDirect: true, city: "ירושלים", spouse: "אדי בן חיים ז\"ל" },
-        { name: "רות", isDirect: true, city: "ירושלים", spouse: "יוחנן טולדאנו" }
+        { id: "1", name: "ברכה", isDirect: true, city: "ירושלים", spouse: "מרדכי ודעי ז\"ל", children: [{ id: "1-1", name: "סעדיה", isDirect: true }, { id: "1-2", name: "אילנה", isDirect: true }, { id: "1-3", name: "דוד", isDirect: true }] },
+        { id: "2", name: "יעקב ז\"ל", isDirect: true, isDeceased: true, city: "עפולה", spouse: "מרים", children: [{ id: "2-1", name: "יאיר", isDirect: true }, { id: "2-2", name: "רונלית", isDirect: true }, { id: "2-3", name: "עופר", isDirect: true }] },
+        { id: "3", name: "מרים", isDirect: true, city: "ירושלים", spouse: "יוסי לוי ז\"ל", children: [{ id: "3-1", name: "אילן", isDirect: true, spouse: "מירי" }, { id: "3-2", name: "גבי", isDirect: true, spouse: "אורה" }, { id: "3-3", name: "סיגל", isDirect: true, spouse: "שבי נביא" }] },
+        { id: "4", name: "פנינה", isDirect: true, city: "ירושלים", spouse: "קלוד דרמוני" },
+        { id: "5", name: "עמירם", isDirect: true, city: "ירושלים", spouse: "שמחה" },
+        { id: "6", name: "שושנה", isDirect: true, city: "באר שבע - ברזיל", spouse: "ג'ימי" },
+        { id: "7", name: "רחל", isDirect: true, city: "מושב פצאל", spouse: "אליהו אבוטבול ז\"ל" },
+        { id: "8", name: "דוד", isDirect: true, city: "באר שבע", spouse: "נילה" },
+        { id: "9", name: "סימה", isDirect: true, city: "רחובות - ארה\"ב", spouse: "שלום קיסר" },
+        { id: "10", name: "בת שבע", isDirect: true, city: "ירושלים", spouse: "אדי בן חיים ז\"ל" },
+        { id: "11", name: "רות", isDirect: true, city: "ירושלים", spouse: "יוחנן טולדאנו" }
       ]
     };
+
+    let familyTree = JSON.parse(localStorage.getItem('familyTreeData')) || defaultTree;
+    let selectedNodeId = null;
+
+    function saveTree() {
+      localStorage.setItem('familyTreeData', JSON.stringify(familyTree));
+      document.getElementById('tree-root').innerHTML = renderTree(familyTree);
+    }
 
     function checkPassword(e) {
       e.preventDefault();
@@ -95,11 +113,11 @@
     function renderTree(node) {
       let html = '<ul><li>';
       html += `<div class="inline-flex gap-1 items-center bg-white p-1 rounded-xl shadow border border-gray-200">
-        <div onclick='openPanel(${JSON.stringify(node)})' class="px-3 py-1.5 rounded-lg cursor-pointer transition font-semibold text-sm ${node.isDirect !== false ? 'bg-amber-300 text-amber-950 hover:bg-amber-400' : 'bg-gray-200 hover:bg-gray-300'}">
+        <div onclick='openPanel("${node.id}")' class="px-3 py-1.5 rounded-lg cursor-pointer transition font-semibold text-sm ${node.isDirect !== false ? 'bg-amber-300 text-amber-950 hover:bg-amber-400' : 'bg-gray-200 hover:bg-gray-300'}">
           ${node.name}
         </div>`;
       if (node.spouse) {
-        html += `<div onclick='openPanel(${JSON.stringify({ name: node.spouse, isDirect: false })})' class="bg-gray-200 text-gray-800 hover:bg-gray-300 px-3 py-1.5 rounded-lg cursor-pointer text-sm">
+        html += `<div onclick='openPanel("${node.id}", true)' class="bg-gray-200 text-gray-800 hover:bg-gray-300 px-3 py-1.5 rounded-lg cursor-pointer text-sm">
           ${node.spouse}
         </div>`;
       }
@@ -116,24 +134,132 @@
       return html;
     }
 
-    function openPanel(person) {
+    function findNode(node, id) {
+      if (node.id === id) return node;
+      if (node.children) {
+        for (let child of node.children) {
+          let found = findNode(child, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    function openPanel(nodeId, isSpouse = false) {
+      selectedNodeId = nodeId;
+      const person = findNode(familyTree, nodeId);
       const panel = document.getElementById('side-panel');
       const content = document.getElementById('panel-content');
-      content.innerHTML = `
-        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
-          <h3 class="font-bold text-gray-900 text-lg">${person.name}</h3>
-          <span class="text-xs px-2 py-0.5 rounded-full ${person.isDirect !== false ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-800'}">
-            ${person.isDirect !== false ? 'צאצא ישיר' : 'בן/בת זוג'}
-          </span>
-        </div>
-        ${person.city ? `<p class="text-sm text-gray-600">📍 עיר מגורים: ${person.city}</p>` : ''}
-        ${person.spouse ? `<p class="text-sm text-gray-600">👤 בן/בת זוג: ${person.spouse}</p>` : ''}
-      `;
+
+      if (!person) return;
+
+      if (isSpouse) {
+        content.innerHTML = `
+          <div class="p-3 bg-gray-100 rounded-xl border border-gray-200">
+            <h3 class="font-bold text-gray-900 text-lg">${person.spouse}</h3>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-800">בן/בת זוג</span>
+          </div>
+          <div class="space-y-3 pt-2">
+            <label class="block text-xs font-semibold text-gray-600">שם בן/בת הזוג:</label>
+            <input type="text" id="edit-spouse-name" value="${person.spouse || ''}" class="w-full px-3 py-2 border rounded-lg text-sm">
+            <button onclick="saveSpouseEdit('${person.id}')" class="w-full bg-amber-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-amber-600">שמור שינויים</button>
+          </div>
+        `;
+      } else {
+        content.innerHTML = `
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
+            <h3 class="font-bold text-gray-900 text-lg">${person.name}</h3>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">צאצא ישיר</span>
+          </div>
+          
+          <!-- טופס עריכת פרטים -->
+          <div class="space-y-3 pt-2 border-b pb-4">
+            <h4 class="font-bold text-xs text-gray-500">עריכת פרטים:</h4>
+            <div>
+              <label class="block text-xs text-gray-600">שם מלא:</label>
+              <input type="text" id="edit-name" value="${person.name}" class="w-full px-3 py-1.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-600">עיר מגורים:</label>
+              <input type="text" id="edit-city" value="${person.city || ''}" class="w-full px-3 py-1.5 border rounded-lg text-sm">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-600">שם בן/בת זוג:</label>
+              <input type="text" id="edit-spouse" value="${person.spouse || ''}" class="w-full px-3 py-1.5 border rounded-lg text-sm">
+            </div>
+            <button onclick="saveNodeEdit('${person.id}')" class="w-full bg-amber-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-amber-600 shadow-sm">שמור עדכונים</button>
+          </div>
+
+          <!-- הוספת צאצא (ילד/ה) -->
+          <div class="space-y-3 pt-2">
+            <h4 class="font-bold text-xs text-gray-500">הוספת צאצא (ילד/ה):</h4>
+            <input type="text" id="new-child-name" placeholder="שם הילד/ה..." class="w-full px-3 py-1.5 border rounded-lg text-sm">
+            <button onclick="addChild('${person.id}')" class="w-full bg-emerald-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 shadow-sm">+ הוסף צאצא לעץ</button>
+          </div>
+        `;
+      }
+
       panel.classList.remove('-translate-x-full');
+    }
+
+    function saveNodeEdit(nodeId) {
+      const person = findNode(familyTree, nodeId);
+      if (person) {
+        person.name = document.getElementById('edit-name').value;
+        person.city = document.getElementById('edit-city').value;
+        person.spouse = document.getElementById('edit-spouse').value;
+        saveTree();
+        openPanel(nodeId);
+      }
+    }
+
+    function saveSpouseEdit(nodeId) {
+      const person = findNode(familyTree, nodeId);
+      if (person) {
+        person.spouse = document.getElementById('edit-spouse-name').value;
+        saveTree();
+        closePanel();
+      }
+    }
+
+    function addChild(nodeId) {
+      const childName = document.getElementById('new-child-name').value.trim();
+      if (!childName) return;
+
+      const person = findNode(familyTree, nodeId);
+      if (person) {
+        if (!person.children) person.children = [];
+        person.children.push({
+          id: Date.now().toString(),
+          name: childName,
+          isDirect: true
+        });
+        saveTree();
+        openPanel(nodeId);
+      }
     }
 
     function closePanel() {
       document.getElementById('side-panel').classList.add('-translate-x-full');
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(familyTree, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "family_tree_data.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function resetData() {
+      if (confirm("האם אתה בטוח שברצונך לאפס את הנתונים לנתוני המקור?")) {
+        localStorage.removeItem('familyTreeData');
+        familyTree = defaultTree;
+        saveTree();
+        closePanel();
+      }
     }
 
     document.getElementById('tree-root').innerHTML = renderTree(familyTree);
