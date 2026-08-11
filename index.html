@@ -8,7 +8,6 @@
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; overflow-x: auto; }
     
-    /* מבנה העץ הבסיסי */
     .tree ul {
       padding-top: 20px;
       position: relative;
@@ -25,7 +24,6 @@
       padding: 20px 10px 0 10px;
     }
 
-    /* 1. קו אנכי יורד מההורה אל ציר האחים */
     .tree ul ul::before {
       content: '';
       position: absolute;
@@ -36,7 +34,6 @@
       transform: translateX(-50%);
     }
 
-    /* 2. ציר אופקי המחבר בין האחים */
     .tree li::before {
       content: '';
       position: absolute;
@@ -55,12 +52,10 @@
       border-top: 2px solid #64748b;
     }
 
-    /* תיקון כיוונים ל-RTL (מימין לשמאל) */
     .tree li:first-child::after { border-top: none; }
     .tree li:last-child::before { border-top: none; }
     .tree li:only-child::before, .tree li:only-child::after { border-top: none; }
 
-    /* 3. קו אנכי יורד מהציר האופקי ישירות לכל קוביה */
     .node-box {
       position: relative;
       display: inline-flex;
@@ -76,7 +71,6 @@
       transform: translateX(-50%);
     }
 
-    /* הסרת הקו האנכי מעל ראש העץ (אסתר) */
     .tree > ul > li > .node-box::before {
       display: none;
     }
@@ -107,11 +101,14 @@
   <header class="bg-white border-b border-gray-200 px-6 py-4 flex flex-wrap gap-4 justify-between items-center shadow-sm sticky top-0 z-30">
     <div>
       <h1 class="text-xl font-bold text-gray-800">עץ משפחת לוי - מורשת אסתר</h1>
-      <p class="text-xs text-gray-500">עץ אינטראקטיבי דיגיטלי</p>
+      <p class="text-xs text-gray-500">עץ אינטראקטיבי דיגיטלי (סנכרון חי בענן)</p>
     </div>
-    <div class="flex gap-2">
-      <button onclick="exportData()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-medium transition shadow-sm">
-        📥 הורד גיבוי נתונים
+    <div class="flex items-center gap-2">
+      <span id="sync-status" class="text-xs px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">
+        🟢 מחובר לסנכרון חי
+      </span>
+      <button onclick="exportData()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-3 py-2 rounded-lg font-medium transition">
+        📥 הורד גיבוי
       </button>
     </div>
   </header>
@@ -119,7 +116,9 @@
   <!-- אזור העץ -->
   <main class="flex-1 overflow-auto w-full">
     <div class="tree-wrapper flex justify-center">
-      <div class="tree" id="tree-root"></div>
+      <div class="tree" id="tree-root">
+        <p class="text-gray-500 text-sm text-center pt-10">טוען נתונים מהענן...</p>
+      </div>
     </div>
   </main>
 
@@ -134,6 +133,10 @@
 
   <script>
     const PASSWORD = "1234";
+
+    // הקודים שלך מ-JSONBin
+    const BIN_ID = "6a7b00daf5f4af5e2906b819";
+    const MASTER_KEY = "$2a$10$gPy46pmwZapgZP5Il488IuPH0T/sHCsecTAsuRfNaJNciKdVaVL9e";
 
     const defaultTree = {
       id: "root",
@@ -165,10 +168,60 @@
       ]
     };
 
-    let familyTree = JSON.parse(localStorage.getItem('familyTreeData')) || defaultTree;
+    let familyTree = defaultTree;
 
-    function saveTree() {
-      localStorage.setItem('familyTreeData', JSON.stringify(familyTree));
+    // טעינת הנתונים המעודכנים מ-JSONBin בענן
+    async function loadTreeFromCloud() {
+      const statusEl = document.getElementById('sync-status');
+      try {
+        statusEl.innerHTML = "⏳ מסנכרן...";
+        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-amber-100 text-amber-800 font-medium";
+
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+          headers: { 'X-Master-Key': MASTER_KEY }
+        });
+        const data = await res.json();
+        
+        if (data.record && data.record.id === "root") {
+          familyTree = data.record;
+        } else {
+          // במידה והענן ריק - מעלים את ברירת המחדל הראשונית
+          await saveTreeToCloud();
+        }
+        
+        statusEl.innerHTML = "🟢 מסונכרן בענן";
+        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-medium";
+      } catch (err) {
+        console.error("שגיאה בטעינת הענן:", err);
+        statusEl.innerHTML = "⚠️ עובד במצב מקומי";
+        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-red-100 text-red-800 font-medium";
+      }
+      renderFullTree();
+    }
+
+    // שמירת שינויים ישר ל-JSONBin בענן
+    async function saveTreeToCloud() {
+      const statusEl = document.getElementById('sync-status');
+      try {
+        statusEl.innerHTML = "💾 שומר לענן...";
+        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-blue-100 text-blue-800 font-medium";
+
+        await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': MASTER_KEY
+          },
+          body: JSON.stringify(familyTree)
+        });
+
+        statusEl.innerHTML = "🟢 נשמר בהצלחה";
+        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-medium";
+      } catch (err) {
+        console.error("שגיאה בשמירה לענן:", err);
+        statusEl.innerHTML = "❌ שגיאה בשמירה";
+        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-red-100 text-red-800 font-medium";
+      }
       renderFullTree();
     }
 
@@ -276,7 +329,6 @@
       if (!person.marriages) person.marriages = [{ spouse: "", children: [] }];
 
       content.innerHTML = `
-        <!-- תמונת פרופיל בכרטיס -->
         <div class="flex flex-col items-center gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-200 text-center">
           <div class="relative w-24 h-24 rounded-full overflow-hidden border-2 border-amber-400 bg-amber-100 flex items-center justify-center text-amber-800 font-bold text-3xl shadow-sm">
             ${person.photo 
@@ -289,7 +341,6 @@
               ${person.isDirect !== false ? 'צאצא ישיר' : 'בן/בת זוג'}
             </span>
           </div>
-          <!-- כפתור העלאת תמונה -->
           <label class="cursor-pointer bg-white border border-amber-300 text-amber-800 text-xs px-3 py-1.5 rounded-lg hover:bg-amber-100 font-medium transition shadow-sm">
             📷 העלה/שנה תמונת פרופיל
             <input type="file" accept="image/*" class="hidden" onchange="uploadPhoto(event, '${person.id}')">
@@ -354,18 +405,17 @@
         reader.onload = function(e) {
           const img = new Image();
           img.onload = function() {
-            // כיווץ התמונה לגודל קל משקל שיתאים לזיכרון הדפדפן
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = 200;
-            canvas.height = 200;
-            ctx.drawImage(img, 0, 0, 200, 200);
+            canvas.width = 180;
+            canvas.height = 180;
+            ctx.drawImage(img, 0, 0, 180, 180);
             
-            const compressedPhoto = canvas.toDataURL('image/jpeg', 0.8);
+            const compressedPhoto = canvas.toDataURL('image/jpeg', 0.7);
             const person = findNode(familyTree, nodeId);
             if (person) {
               person.photo = compressedPhoto;
-              saveTree();
+              saveTreeToCloud();
               openPanel(nodeId);
             }
           };
@@ -380,7 +430,7 @@
       if (p) {
         p.name = document.getElementById('edit-name').value;
         p.city = document.getElementById('edit-city').value;
-        saveTree();
+        saveTreeToCloud();
         openPanel(id);
       }
     }
@@ -390,7 +440,7 @@
       if (p) {
         if (!p.marriages) p.marriages = [];
         p.marriages.push({ spouse: "", children: [] });
-        saveTree();
+        saveTreeToCloud();
         openPanel(id);
       }
     }
@@ -402,7 +452,7 @@
           const el = document.getElementById(`spouse-${idx}`);
           if (el) m.spouse = el.value;
         });
-        saveTree();
+        saveTreeToCloud();
         openPanel(id);
       }
     }
@@ -421,7 +471,7 @@
           isDirect: true,
           marriages: [{ spouse: "", children: [] }]
         });
-        saveTree();
+        saveTreeToCloud();
         openPanel(id);
       }
     }
@@ -429,7 +479,7 @@
     function removePerson(id) {
       if (confirm("האם אתה בטוח שברצונך למחוק אדם זה מהעץ?")) {
         deleteNode(familyTree, id);
-        saveTree();
+        saveTreeToCloud();
         closePanel();
       }
     }
@@ -448,7 +498,8 @@
       downloadAnchor.remove();
     }
 
-    renderFullTree();
+    // הפעלה ראשונית - טעינה מ-JSONBin
+    loadTreeFromCloud();
   </script>
 </body>
 </html>
