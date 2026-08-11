@@ -9,12 +9,15 @@
     body { font-family: system-ui, -apple-system, sans-serif; overflow-x: auto; }
     
     .tree ul {
-      padding-top: 20px;
       position: relative;
       display: flex;
       justify-content: center;
       margin: 0;
-      padding: 0;
+      padding: 20px 0 0 0; /* ריווח עליון נכון שמאפשר נקודת מפגש מדויקת */
+    }
+
+    .tree > ul {
+      padding-top: 0; /* ללא ריווח עבור השורש העליון */
     }
 
     .tree li {
@@ -24,6 +27,7 @@
       padding: 20px 10px 0 10px;
     }
 
+    /* הקו האנכי היורד מההורה לקו האופקי */
     .tree ul ul::before {
       content: '';
       position: absolute;
@@ -34,6 +38,7 @@
       transform: translateX(-50%);
     }
 
+    /* הקו האופקי המחבר בין הצאצאים */
     .tree li::before {
       content: '';
       position: absolute;
@@ -56,6 +61,7 @@
     .tree li:last-child::before { border-top: none; }
     .tree li:only-child::before, .tree li:only-child::after { border-top: none; }
 
+    /* הקו העולה מכל כרטיס אדם למעלה אל הקו האופקי */
     .node-box {
       position: relative;
       display: inline-flex;
@@ -69,6 +75,10 @@
       height: 20px;
       border-left: 2px solid #64748b;
       transform: translateX(-50%);
+    }
+
+    .tree > ul > li {
+      padding-top: 0;
     }
 
     .tree > ul > li > .node-box::before {
@@ -134,7 +144,6 @@
   <script>
     const PASSWORD = "1234";
 
-    // הקודים שלך מ-JSONBin
     const BIN_ID = "6a7b00daf5f4af5e2906b819";
     const MASTER_KEY = "$2a$10$gPy46pmwZapgZP5Il488IuPH0T/sHCsecTAsuRfNaJNciKdVaVL9e";
 
@@ -170,7 +179,6 @@
 
     let familyTree = defaultTree;
 
-    // טעינת הנתונים המעודכנים מ-JSONBin בענן
     async function loadTreeFromCloud() {
       const statusEl = document.getElementById('sync-status');
       try {
@@ -185,7 +193,6 @@
         if (data.record && data.record.id === "root") {
           familyTree = data.record;
         } else {
-          // במידה והענן ריק - מעלים את ברירת המחדל הראשונית
           await saveTreeToCloud();
         }
         
@@ -199,7 +206,6 @@
       renderFullTree();
     }
 
-    // שמירת שינויים ישר ל-JSONBin בענן
     async function saveTreeToCloud() {
       const statusEl = document.getElementById('sync-status');
       try {
@@ -498,7 +504,6 @@
       downloadAnchor.remove();
     }
 
-    // הפעלה ראשונית - טעינה מ-JSONBin
     loadTreeFromCloud();
   </script>
 </body>
