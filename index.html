@@ -2,22 +2,22 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>עץ משפחת לוי - מורשת אסתר</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; overflow-x: auto; }
+    body { font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
     
     .tree ul {
       position: relative;
       display: flex;
       justify-content: center;
       margin: 0;
-      padding: 20px 0 0 0; /* ריווח עליון נכון שמאפשר נקודת מפגש מדויקת */
+      padding: 20px 0 0 0;
     }
 
     .tree > ul {
-      padding-top: 0; /* ללא ריווח עבור השורש העליון */
+      padding-top: 0;
     }
 
     .tree li {
@@ -27,7 +27,7 @@
       padding: 20px 10px 0 10px;
     }
 
-    /* הקו האנכי היורד מההורה לקו האופקי */
+    /* הקו האנכי היורד מההורה */
     .tree ul ul::before {
       content: '';
       position: absolute;
@@ -38,7 +38,7 @@
       transform: translateX(-50%);
     }
 
-    /* הקו האופקי המחבר בין הצאצאים */
+    /* הקו האופקי המחבר */
     .tree li::before {
       content: '';
       position: absolute;
@@ -61,7 +61,7 @@
     .tree li:last-child::before { border-top: none; }
     .tree li:only-child::before, .tree li:only-child::after { border-top: none; }
 
-    /* הקו העולה מכל כרטיס אדם למעלה אל הקו האופקי */
+    /* הקו העולה מכל כרטיס אדם */
     .node-box {
       position: relative;
       display: inline-flex;
@@ -87,17 +87,25 @@
 
     .tree-wrapper {
       min-width: max-content;
-      padding: 40px;
+      padding: 60px;
+      transform-origin: 0 0;
+      transition: transform 0.05s ease-out;
+    }
+
+    #viewport {
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-100 h-screen w-screen flex flex-col overflow-hidden">
 
   <!-- מסך התחברות -->
   <div id="login-screen" class="fixed inset-0 bg-amber-50/95 z-50 flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-amber-200 text-center">
+    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl max-w-md w-full border border-amber-200 text-center">
       <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">🔒</div>
-      <h1 class="text-2xl font-bold text-gray-800 mb-2">עץ משפחת לוי / אזולאי</h1>
+      <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">עץ משפחת לוי / אזולאי</h1>
       <p class="text-gray-600 mb-6 text-sm">אנא הזן את הסיסמה המשפחתית כדי לצפות בעץ המשפחה</p>
       <form onsubmit="checkPassword(event)" class="space-y-4">
         <input type="password" id="pass-input" placeholder="הכנס סיסמה..." class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 text-center text-lg outline-none">
@@ -108,35 +116,47 @@
   </div>
 
   <!-- כותרת עליונה -->
-  <header class="bg-white border-b border-gray-200 px-6 py-4 flex flex-wrap gap-4 justify-between items-center shadow-sm sticky top-0 z-30">
+  <header class="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap gap-2 sm:gap-4 justify-between items-center shadow-sm sticky top-0 z-30">
     <div>
-      <h1 class="text-xl font-bold text-gray-800">עץ משפחת לוי - מורשת אסתר</h1>
-      <p class="text-xs text-gray-500">עץ אינטראקטיבי דיגיטלי (סנכרון חי בענן)</p>
+      <h1 class="text-base sm:text-xl font-bold text-gray-800">עץ משפחת לוי - מורשת אסתר</h1>
+      <p class="text-[10px] sm:text-xs text-gray-500">עץ אינטראקטיבי (גרירה וזום זמינים)</p>
     </div>
     <div class="flex items-center gap-2">
-      <span id="sync-status" class="text-xs px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">
-        🟢 מחובר לסנכרון חי
+      <span id="sync-status" class="text-[10px] sm:text-xs px-2.5 py-1 sm:py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">
+        🟢 מחובר
       </span>
-      <button onclick="exportData()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-3 py-2 rounded-lg font-medium transition">
-        📥 הורד גיבוי
+      <button onclick="exportData()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] sm:text-xs px-2.5 py-1.5 sm:py-2 rounded-lg font-medium transition">
+        📥 גיבוי
       </button>
     </div>
   </header>
 
-  <!-- אזור העץ -->
-  <main class="flex-1 overflow-auto w-full">
-    <div class="tree-wrapper flex justify-center">
-      <div class="tree" id="tree-root">
-        <p class="text-gray-500 text-sm text-center pt-10">טוען נתונים מהענן...</p>
+  <!-- אזור העץ עם Zoom & Pan -->
+  <main class="flex-1 relative overflow-hidden bg-slate-100 cursor-grab active:cursor-grabbing" id="viewport">
+    
+    <!-- פאנל כפתורי זום צף -->
+    <div class="absolute bottom-4 left-4 z-20 flex items-center gap-1 sm:gap-2 bg-white/90 backdrop-blur-md p-1.5 sm:p-2 rounded-2xl shadow-lg border border-slate-200">
+      <button onclick="zoomIn()" class="w-8 h-8 sm:w-10 sm:h-10 hover:bg-slate-100 active:bg-slate-200 rounded-xl font-bold text-slate-700 text-lg transition flex items-center justify-center" title="זום פנימה">+</button>
+      <button onclick="zoomOut()" class="w-8 h-8 sm:w-10 sm:h-10 hover:bg-slate-100 active:bg-slate-200 rounded-xl font-bold text-slate-700 text-lg transition flex items-center justify-center" title="זום החוצה">-</button>
+      <button onclick="resetZoom()" class="px-2.5 py-1.5 sm:px-3 sm:py-2 hover:bg-slate-100 active:bg-slate-200 rounded-xl text-xs font-semibold text-slate-700 transition" title="איפוס תצוגה">איפוס</button>
+      <span id="zoom-level" class="text-[10px] sm:text-xs text-slate-500 px-1.5 font-mono min-w-[40px] text-center">100%</span>
+    </div>
+
+    <!-- המכולה הזזה והגדלה -->
+    <div id="pan-target" class="absolute top-0 left-0">
+      <div class="tree-wrapper" id="tree-target">
+        <div class="tree" id="tree-root">
+          <p class="text-gray-500 text-sm text-center pt-10">טוען נתונים...</p>
+        </div>
       </div>
     </div>
   </main>
 
-  <!-- פאנל פרטים ועריכה צדדי -->
-  <div id="side-panel" class="fixed inset-y-0 left-0 w-80 bg-white shadow-2xl border-r border-gray-200 p-6 z-40 transform -translate-x-full transition-transform duration-300 overflow-y-auto">
+  <!-- פאנל פרטים ועריכה צדדי (מותאם מובייל) -->
+  <div id="side-panel" class="fixed inset-y-0 left-0 w-full sm:w-80 bg-white shadow-2xl border-r border-gray-200 p-6 z-40 transform -translate-x-full transition-transform duration-300 overflow-y-auto">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-lg font-bold text-gray-800">כרטיס חבר משפחה</h2>
-      <button onclick="closePanel()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+      <button onclick="closePanel()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold p-1">&times;</button>
     </div>
     <div id="panel-content" class="space-y-4"></div>
   </div>
@@ -179,11 +199,123 @@
 
     let familyTree = defaultTree;
 
+    // --- מנגנון ZOOM & PAN ---
+    let scale = 0.85;
+    let pointX = 0;
+    let pointY = 0;
+    let startX = 0;
+    let startY = 0;
+    let isPanning = false;
+
+    const viewport = document.getElementById('viewport');
+    const panTarget = document.getElementById('pan-target');
+
+    function updateTransform() {
+      panTarget.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+      document.getElementById('zoom-level').innerText = `${Math.round(scale * 100)}%`;
+    }
+
+    function zoomIn() {
+      scale = Math.min(scale + 0.15, 2.2);
+      updateTransform();
+    }
+
+    function zoomOut() {
+      scale = Math.max(scale - 0.15, 0.25);
+      updateTransform();
+    }
+
+    function resetZoom() {
+      scale = 0.85;
+      // מרכז את העץ על המסך
+      const viewportRect = viewport.getBoundingClientRect();
+      const treeRect = document.getElementById('tree-target').getBoundingClientRect();
+      pointX = (viewportRect.width - treeRect.width * scale) / 2;
+      pointY = 40;
+      updateTransform();
+    }
+
+    // אירועי עכבר (Desktop)
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.node-box') || e.target.closest('#side-panel')) return;
+      isPanning = true;
+      startX = e.clientX - pointX;
+      startY = e.clientY - pointY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isPanning) return;
+      pointX = e.clientX - startX;
+      pointY = e.clientY - startY;
+      updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isPanning = false;
+    });
+
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+      const newScale = Math.min(Math.max(scale * zoomFactor, 0.25), 2.2);
+
+      const rect = viewport.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      pointX = mouseX - (mouseX - pointX) * (newScale / scale);
+      pointY = mouseY - (mouseY - pointY) * (newScale / scale);
+      scale = newScale;
+
+      updateTransform();
+    }, { passive: false });
+
+    // אירועי מגע (Mobile Touch)
+    let initialPinchDistance = null;
+
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.target.closest('.node-box') || e.target.closest('#side-panel')) return;
+      if (e.touches.length === 1) {
+        isPanning = true;
+        startX = e.touches[0].clientX - pointX;
+        startY = e.touches[0].clientY - pointY;
+      } else if (e.touches.length === 2) {
+        isPanning = false;
+        initialPinchDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+      }
+    });
+
+    viewport.addEventListener('touchmove', (e) => {
+      if (isPanning && e.touches.length === 1) {
+        pointX = e.touches[0].clientX - startX;
+        pointY = e.touches[0].clientY - startY;
+        updateTransform();
+      } else if (e.touches.length === 2 && initialPinchDistance) {
+        const currentDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const factor = currentDistance / initialPinchDistance;
+        scale = Math.min(Math.max(scale * factor, 0.25), 2.2);
+        initialPinchDistance = currentDistance;
+        updateTransform();
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) initialPinchDistance = null;
+      if (e.touches.length === 0) isPanning = false;
+    });
+
+    // --- טעינת נתונים וסנכרון ענן ---
     async function loadTreeFromCloud() {
       const statusEl = document.getElementById('sync-status');
       try {
         statusEl.innerHTML = "⏳ מסנכרן...";
-        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-amber-100 text-amber-800 font-medium";
+        statusEl.className = "text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-medium";
 
         const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
           headers: { 'X-Master-Key': MASTER_KEY }
@@ -196,21 +328,22 @@
           await saveTreeToCloud();
         }
         
-        statusEl.innerHTML = "🟢 מסונכרן בענן";
-        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-medium";
+        statusEl.innerHTML = "🟢 מסונכרן";
+        statusEl.className = "text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium";
       } catch (err) {
         console.error("שגיאה בטעינת הענן:", err);
-        statusEl.innerHTML = "⚠️ עובד במצב מקומי";
-        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-red-100 text-red-800 font-medium";
+        statusEl.innerHTML = "⚠️ מצב מקומי";
+        statusEl.className = "text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-medium";
       }
       renderFullTree();
+      setTimeout(resetZoom, 100);
     }
 
     async function saveTreeToCloud() {
       const statusEl = document.getElementById('sync-status');
       try {
-        statusEl.innerHTML = "💾 שומר לענן...";
-        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-blue-100 text-blue-800 font-medium";
+        statusEl.innerHTML = "💾 שומר...";
+        statusEl.className = "text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-medium";
 
         await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
           method: 'PUT',
@@ -221,12 +354,12 @@
           body: JSON.stringify(familyTree)
         });
 
-        statusEl.innerHTML = "🟢 נשמר בהצלחה";
-        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-medium";
+        statusEl.innerHTML = "🟢 נשמר";
+        statusEl.className = "text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium";
       } catch (err) {
         console.error("שגיאה בשמירה לענן:", err);
         statusEl.innerHTML = "❌ שגיאה בשמירה";
-        statusEl.className = "text-xs px-3 py-1.5 rounded-full bg-red-100 text-red-800 font-medium";
+        statusEl.className = "text-[10px] sm:text-xs px-2.5 py-1 rounded-full bg-red-100 text-red-800 font-medium";
       }
       renderFullTree();
     }
@@ -243,15 +376,15 @@
     function renderNode(node) {
       let html = '<li>';
       
-      html += `<div class="node-box gap-1 items-center bg-white p-1.5 rounded-xl shadow border border-slate-300 relative z-10">
-        <div onclick='openPanel("${node.id}")' class="px-3.5 py-1.5 rounded-lg cursor-pointer transition font-semibold text-sm ${node.isDirect !== false ? 'bg-amber-300 text-amber-950 hover:bg-amber-400' : 'bg-slate-200 hover:bg-slate-300'}">
+      html += `<div class="node-box gap-1 items-center bg-white p-1 rounded-xl shadow-md border border-slate-300 relative z-10">
+        <div onclick='openPanel("${node.id}")' class="px-3 py-1.5 rounded-lg cursor-pointer transition font-semibold text-xs sm:text-sm whitespace-nowrap ${node.isDirect !== false ? 'bg-amber-300 text-amber-950 hover:bg-amber-400' : 'bg-slate-200 hover:bg-slate-300'}">
           ${node.name}
         </div>`;
 
       if (node.marriages && node.marriages.length > 0) {
         node.marriages.forEach((m, mIdx) => {
           if (m.spouse) {
-            html += `<div onclick='openPanel("${node.id}", ${mIdx})' class="bg-slate-200 text-slate-800 hover:bg-slate-300 px-3 py-1.5 rounded-lg cursor-pointer text-sm">
+            html += `<div onclick='openPanel("${node.id}", ${mIdx})' class="bg-slate-200 text-slate-800 hover:bg-slate-300 px-2.5 py-1.5 rounded-lg cursor-pointer text-xs sm:text-sm whitespace-nowrap">
               ${m.spouse}
             </div>`;
           }
@@ -267,7 +400,7 @@
           marriagesWithKids.forEach(m => {
             html += `<li>
               <div class="node-box">
-                <span class="bg-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded-full border border-slate-300 font-medium">
+                <span class="bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2 py-0.5 rounded-full border border-slate-300 font-medium">
                   מנישואים ל: ${m.spouse || 'בן/בת זוג'}
                 </span>
               </div>
@@ -336,19 +469,19 @@
 
       content.innerHTML = `
         <div class="flex flex-col items-center gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-200 text-center">
-          <div class="relative w-24 h-24 rounded-full overflow-hidden border-2 border-amber-400 bg-amber-100 flex items-center justify-center text-amber-800 font-bold text-3xl shadow-sm">
+          <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-amber-400 bg-amber-100 flex items-center justify-center text-amber-800 font-bold text-2xl sm:text-3xl shadow-sm">
             ${person.photo 
               ? `<img src="${person.photo}" alt="${person.name}" class="w-full h-full object-cover">` 
               : `<span>${person.name[0]}</span>`}
           </div>
           <div>
-            <h3 class="font-bold text-gray-900 text-lg">${person.name}</h3>
-            <span class="text-xs px-2.5 py-0.5 rounded-full ${person.isDirect !== false ? 'bg-amber-200 text-amber-800' : 'bg-slate-200 text-slate-800'}">
+            <h3 class="font-bold text-gray-900 text-base sm:text-lg">${person.name}</h3>
+            <span class="text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full ${person.isDirect !== false ? 'bg-amber-200 text-amber-800' : 'bg-slate-200 text-slate-800'}">
               ${person.isDirect !== false ? 'צאצא ישיר' : 'בן/בת זוג'}
             </span>
           </div>
           <label class="cursor-pointer bg-white border border-amber-300 text-amber-800 text-xs px-3 py-1.5 rounded-lg hover:bg-amber-100 font-medium transition shadow-sm">
-            📷 העלה/שנה תמונת פרופיל
+            📷 העלה/שנה תמונה
             <input type="file" accept="image/*" class="hidden" onchange="uploadPhoto(event, '${person.id}')">
           </label>
         </div>
@@ -363,7 +496,7 @@
             <label class="block text-xs text-gray-600">עיר מגורים:</label>
             <input type="text" id="edit-city" value="${person.city || ''}" class="w-full px-3 py-1.5 border rounded-lg text-sm">
           </div>
-          <button onclick="savePersonDetails('${person.id}')" class="w-full bg-amber-500 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-amber-600 shadow-sm">שמור פרטים</button>
+          <button onclick="savePersonDetails('${person.id}')" class="w-full bg-amber-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-amber-600 shadow-sm">שמור פרטים</button>
         </div>
 
         <div class="space-y-3 border-b pb-4">
@@ -374,8 +507,8 @@
               <input type="text" id="spouse-${idx}" value="${m.spouse || ''}" placeholder="שם בן/בת הזוג..." class="w-full px-2.5 py-1 border rounded text-sm">
             </div>
           `).join('')}
-          <button onclick="addSpouseSession('${person.id}')" class="w-full bg-slate-200 text-slate-700 py-1.5 rounded-lg text-xs font-medium hover:bg-slate-300">+ הוסף בן/בת זוג נוסף (נישואים שניים)</button>
-          <button onclick="saveSpouses('${person.id}')" class="w-full bg-amber-500 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-amber-600 shadow-sm">שמור נישואים</button>
+          <button onclick="addSpouseSession('${person.id}')" class="w-full bg-slate-200 text-slate-700 py-1.5 rounded-lg text-xs font-medium hover:bg-slate-300">+ הוסף בן/בת זוג נוסף</button>
+          <button onclick="saveSpouses('${person.id}')" class="w-full bg-amber-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-amber-600 shadow-sm">שמור נישואים</button>
         </div>
 
         <div class="space-y-3 border-b pb-4">
@@ -389,12 +522,12 @@
             </select>
           </div>
           <input type="text" id="new-child-name" placeholder="שם הילד/ה..." class="w-full px-3 py-1.5 border rounded-lg text-sm">
-          <button onclick="addChild('${person.id}')" class="w-full bg-emerald-600 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-emerald-700 shadow-sm">+ הוסף צאצא לעץ</button>
+          <button onclick="addChild('${person.id}')" class="w-full bg-emerald-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 shadow-sm">+ הוסף צאצא לעץ</button>
         </div>
 
         ${person.id !== 'root' ? `
           <div class="pt-2">
-            <button onclick="removePerson('${person.id}')" class="w-full bg-red-100 text-red-600 hover:bg-red-200 py-2 rounded-lg text-xs font-bold transition">
+            <button onclick="removePerson('${person.id}')" class="w-full bg-red-100 text-red-600 hover:bg-red-200 py-2.5 rounded-lg text-xs font-bold transition">
               🗑️ מחק אדם זה מהעץ
             </button>
           </div>
