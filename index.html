@@ -8,15 +8,14 @@
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; overflow-x: auto; }
     
-    /* מבנה העץ */
+    /* מבנה העץ הבסיסי */
     .tree ul {
       padding-top: 20px;
       position: relative;
       display: flex;
       justify-content: center;
       margin: 0;
-      padding-left: 0;
-      padding-right: 0;
+      padding: 0;
     }
 
     .tree li {
@@ -26,7 +25,18 @@
       padding: 20px 10px 0 10px;
     }
 
-    /* קווי חיבור אופקיים בין אחים */
+    /* 1. קו אנכי יורד מההורה אל ציר האחים */
+    .tree ul ul::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      height: 20px;
+      border-left: 2px solid #64748b;
+      transform: translateX(-50%);
+    }
+
+    /* 2. ציר אופקי המחבר בין האחים */
     .tree li::before {
       content: '';
       position: absolute;
@@ -45,23 +55,12 @@
       border-top: 2px solid #64748b;
     }
 
-    /* העלמת השוליים האופקיים בקצוות (התאמה מלאה ל-RTL) */
-    .tree li:first-child::before { display: none; }
-    .tree li:last-child::after { display: none; }
-    .tree li:only-child::before, .tree li:only-child::after { display: none; }
+    /* הסרת עודפים אופקיים בקצוות בלבד (בלי לפגוע בקווים האנכיים) */
+    .tree li:first-child::before { border-top: none; }
+    .tree li:last-child::after { border-top: none; }
+    .tree li:only-child::before, .tree li:only-child::after { border-top: none; }
 
-    /* קו אנכי יורד מההורה אל ציר האחים */
-    .tree ul ul::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 50%;
-      height: 20px;
-      border-left: 2px solid #64748b;
-      transform: translateX(-50%);
-    }
-
-    /* קו אנכי עולה מכל קוביה אל ציר האחים */
+    /* 3. קו אנכי יורד מהציר האופקי ישירות לכל קוביה */
     .node-box {
       position: relative;
       display: inline-flex;
@@ -77,7 +76,7 @@
       transform: translateX(-50%);
     }
 
-    /* הסרת הקו האנכי מעל ראש העץ (אסתר) */
+    /* הסרת הקו האנכי רק מעל ראש העץ (אסתר) */
     .tree > ul > li > .node-box::before {
       display: none;
     }
