@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>עץ משפחת לוי - מורשת אסתר</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    .tree ul { padding-top: 20px; position: relative; display: flex; justify-content: center; }
+    .tree li { text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; }
+    .tree li::before, .tree li::after {
+      content: ''; position: absolute; top: 0; right: 50%; border-top: 2px solid #cbd5e1; width: 50%; height: 20px;
+    }
+    .tree li::after { right: auto; left: 50%; border-left: 2px solid #cbd5e1; }
+    .tree li:only-child::after, .tree li:only-child::before { display: none; }
+    .tree li:only-child { padding-top: 0; }
+    .tree li:first-child::before, .tree li:last-child::after { border: 0 none; }
+    .tree li:last-child::before { border-right: 2px solid #cbd5e1; border-radius: 0 5px 0 0; }
+    .tree li:first-child::after { border-radius: 5px 0 0 0; }
+    .tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid #cbd5e1; width: 0; height: 20px; }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col">
+
+  <!-- מסך התחברות עם סיסמה -->
+  <div id="login-screen" class="fixed inset-0 bg-amber-50/90 z-50 flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-amber-200 text-center">
+      <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">🔒</div>
+      <h1 class="text-2xl font-bold text-gray-800 mb-2">עץ משפחת לוי / אזולאי</h1>
+      <p class="text-gray-600 mb-6 text-sm">אנא הזן את הסיסמה המשפחתית כדי לצפות بعץ המשפחה</p>
+      <form onsubmit="checkPassword(event)" class="space-y-4">
+        <input type="password" id="pass-input" placeholder="הכנס סיסמה..." class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 text-center text-lg outline-none">
+        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-3 rounded-xl transition shadow-md">כניסה לאתר</button>
+      </form>
+      <p id="error-msg" class="text-red-500 text-sm mt-3 hidden">סיסמה שגויה, נסה שוב</p>
+    </div>
+  </div>
+
+  <!-- תוכן האתר והעץ -->
+  <header class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
+    <div>
+      <h1 class="text-xl font-bold text-gray-800">עץ משפחת לוי - מורשת אסתר</h1>
+      <p class="text-xs text-gray-500">עץ אינטראקטיבי דיגיטלי</p>
+    </div>
+  </header>
+
+  <main class="flex-1 overflow-auto p-8 flex justify-center items-start">
+    <div class="tree" id="tree-root"></div>
+  </main>
+
+  <!-- פאנל פרטים אישי -->
+  <div id="side-panel" class="fixed inset-y-0 left-0 w-80 bg-white shadow-2xl border-r border-gray-200 p-6 z-40 transform -translate-x-full transition-transform duration-300 overflow-y-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-lg font-bold text-gray-800">כרטיס חבר משפחה</h2>
+      <button onclick="closePanel()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+    </div>
+    <div id="panel-content" class="space-y-4"></div>
+  </div>
+
+  <script>
+    const PASSWORD = "1234"; // סיסמה משפחתית ברירת מחדל
+
+    const familyTree = {
+      name: "אסתר",
+      isDirect: true,
+      isDeceased: true,
+      city: "ירושלים",
+      spouse: "חנני בן עמי",
+      children: [
+        { name: "ברכה", isDirect: true, city: "ירושלים", spouse: "מרדכי ודעי ז\"ל", children: [{ name: "סעדיה" }, { name: "אילנה" }, { name: "דוד" }] },
+        { name: "יעקב ז\"ל", isDirect: true, isDeceased: true, city: "עפולה", spouse: "מרים", children: [{ name: "יאיר" }, { name: "רונלית" }, { name: "עופר" }] },
+        { name: "מרים", isDirect: true, city: "ירושלים", spouse: "יוסי לוי ז\"ל", children: [{ name: "אילן", spouse: "מירי" }, { name: "גבי", spouse: "אורה" }, { name: "סיגל", spouse: "שבי נביא" }] },
+        { name: "פנינה", isDirect: true, city: "ירושלים", spouse: "קלוד דרמוני" },
+        { name: "עמירם", isDirect: true, city: "ירושלים", spouse: "שמחה" },
+        { name: "שושנה", isDirect: true, city: "באר שבע - ברזיל", spouse: "ג'ימי" },
+        { name: "רחל", isDirect: true, city: "מושב פצאל", spouse: "אליהו אבוטבול ז\"ל" },
+        { name: "דוד", isDirect: true, city: "באר שבע", spouse: "נילה" },
+        { name: "סימה", isDirect: true, city: "רחובות - ארה\"ב", spouse: "שלום קיסר" },
+        { name: "בת שבע", isDirect: true, city: "ירושלים", spouse: "אדי בן חיים ז\"ל" },
+        { name: "רות", isDirect: true, city: "ירושלים", spouse: "יוחנן טולדאנו" }
+      ]
+    };
+
+    function checkPassword(e) {
+      e.preventDefault();
+      const val = document.getElementById('pass-input').value;
+      if (val === PASSWORD) {
+        document.getElementById('login-screen').classList.add('hidden');
+      } else {
+        document.getElementById('error-msg').classList.remove('hidden');
+      }
+    }
+
+    function renderTree(node) {
+      let html = '<ul><li>';
+      html += `<div class="inline-flex gap-1 items-center bg-white p-1 rounded-xl shadow border border-gray-200">
+        <div onclick='openPanel(${JSON.stringify(node)})' class="px-3 py-1.5 rounded-lg cursor-pointer transition font-semibold text-sm ${node.isDirect !== false ? 'bg-amber-300 text-amber-950 hover:bg-amber-400' : 'bg-gray-200 hover:bg-gray-300'}">
+          ${node.name}
+        </div>`;
+      if (node.spouse) {
+        html += `<div onclick='openPanel(${JSON.stringify({ name: node.spouse, isDirect: false })})' class="bg-gray-200 text-gray-800 hover:bg-gray-300 px-3 py-1.5 rounded-lg cursor-pointer text-sm">
+          ${node.spouse}
+        </div>`;
+      }
+      html += '</div>';
+
+      if (node.children && node.children.length > 0) {
+        html += '<ul>';
+        node.children.forEach(child => {
+          html += renderTree(child);
+        });
+        html += '</ul>';
+      }
+      html += '</li></ul>';
+      return html;
+    }
+
+    function openPanel(person) {
+      const panel = document.getElementById('side-panel');
+      const content = document.getElementById('panel-content');
+      content.innerHTML = `
+        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
+          <h3 class="font-bold text-gray-900 text-lg">${person.name}</h3>
+          <span class="text-xs px-2 py-0.5 rounded-full ${person.isDirect !== false ? 'bg-amber-200 text-amber-800' : 'bg-gray-200 text-gray-800'}">
+            ${person.isDirect !== false ? 'צאצא ישיר' : 'בן/בת זוג'}
+          </span>
+        </div>
+        ${person.city ? `<p class="text-sm text-gray-600">📍 עיר מגורים: ${person.city}</p>` : ''}
+        ${person.spouse ? `<p class="text-sm text-gray-600">👤 בן/בת זוג: ${person.spouse}</p>` : ''}
+      `;
+      panel.classList.remove('-translate-x-full');
+    }
+
+    function closePanel() {
+      document.getElementById('side-panel').classList.add('-translate-x-full');
+    }
+
+    document.getElementById('tree-root').innerHTML = renderTree(familyTree);
+  </script>
+</body>
+</html>
