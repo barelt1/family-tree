@@ -184,7 +184,6 @@
     function renderNode(node) {
       let html = '<li>';
       
-      // קובית אדם + בני זוג
       html += `<div class="node-box gap-1 items-center bg-white p-1.5 rounded-xl shadow border border-slate-300 relative z-10">
         <div onclick='openPanel("${node.id}")' class="px-3.5 py-1.5 rounded-lg cursor-pointer transition font-semibold text-sm ${node.isDirect !== false ? 'bg-amber-300 text-amber-950 hover:bg-amber-400' : 'bg-slate-200 hover:bg-slate-300'}">
           ${node.name}
@@ -201,12 +200,10 @@
       }
       html += '</div>';
 
-      // טיפול בהפרדה ויזואלית של נישואים שניים
       if (node.marriages && node.marriages.length > 0) {
         const marriagesWithKids = node.marriages.filter(m => m.children && m.children.length > 0);
         
         if (marriagesWithKids.length > 1) {
-          // כמה מערכות נישואים עם ילדים -> פיצול לענפים נפרדים עם תגיות זיהוי!
           html += '<ul>';
           marriagesWithKids.forEach(m => {
             html += `<li>
@@ -223,7 +220,6 @@
           });
           html += '</ul>';
         } else if (marriagesWithKids.length === 1) {
-          // נישואים יחידים -> תצוגת ילדים רגילה ונקייה
           html += '<ul>';
           marriagesWithKids[0].children.forEach(child => {
             html += renderNode(child);
@@ -356,12 +352,24 @@
       if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-          const person = findNode(familyTree, nodeId);
-          if (person) {
-            person.photo = e.target.result;
-            saveTree();
-            openPanel(nodeId);
-          }
+          const img = new Image();
+          img.onload = function() {
+            // כיווץ התמונה לגודל קל משקל שיתאים לזיכרון הדפדפן
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 200;
+            canvas.height = 200;
+            ctx.drawImage(img, 0, 0, 200, 200);
+            
+            const compressedPhoto = canvas.toDataURL('image/jpeg', 0.8);
+            const person = findNode(familyTree, nodeId);
+            if (person) {
+              person.photo = compressedPhoto;
+              saveTree();
+              openPanel(nodeId);
+            }
+          };
+          img.src = e.target.result;
         };
         reader.readAsDataURL(file);
       }
