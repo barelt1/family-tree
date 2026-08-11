@@ -37,6 +37,7 @@
     }
 
     /* 2. ציר אופקי המחבר בין האחים */
+    /* ::before מייצג את החצי השמאלי של הקו האופקי */
     .tree li::before {
       content: '';
       position: absolute;
@@ -46,6 +47,7 @@
       border-top: 2px solid #64748b;
     }
 
+    /* ::after מייצג את החצי הימני של הקו האופקי */
     .tree li::after {
       content: '';
       position: absolute;
@@ -55,9 +57,14 @@
       border-top: 2px solid #64748b;
     }
 
-    /* הסרת עודפים אופקיים בקצוות בלבד (בלי לפגוע בקווים האנכיים) */
-    .tree li:first-child::before { border-top: none; }
-    .tree li:last-child::after { border-top: none; }
+    /* תיקון כיוונים ל-RTL (מימין לשמאל): */
+    /* הילד הראשון (ימני ביותר) - מוחקים את הקו הפונה ימינה (::after) */
+    .tree li:first-child::after { border-top: none; }
+
+    /* הילד האחרון (שמאלי ביותר) - מוחקים את הקו הפונה שמאלה (::before) */
+    .tree li:last-child::before { border-top: none; }
+
+    /* ילד יחיד - מוחקים את שני הקווים האופקיים */
     .tree li:only-child::before, .tree li:only-child::after { border-top: none; }
 
     /* 3. קו אנכי יורד מהציר האופקי ישירות לכל קוביה */
@@ -149,8 +156,8 @@
           spouse: "חנני בן עמי",
           children: [
             { id: "1", name: "ברכה", isDirect: true, city: "ירושלים", marriages: [{ spouse: "מרדכי ודעי ז\"ל", children: [{ id: "1-1", name: "סעדיה" }, { id: "1-2", name: "אילנה" }] }] },
-            { id: "2", name: "יעקב ז\"ל", isDirect: true, isDeceased: true, city: "עפולה", marriages: [{ spouse: "מרים", children: [{ id: "2-1", name: "יאיר" }] }] },
-            { id: "3", name: "מרים", isDirect: true, city: "ירושלים", marriages: [{ spouse: "יוסי לוי ז\"ל", children: [{ id: "3-1", name: "אילן", marriages: [{ spouse: "מירי", children: [{ id: "3-1-1", name: "טל" }, { id: "3-1-2", name: "בר" }, { id: "3-1-3", name: "עדן" }] }] }, { id: "3-2", name: "גבי", marriages: [{ spouse: "אורה" }] }, { id: "3-3", name: "סיגי" }] }] },
+            { id: "2", name: "יעקב ז\"ל", isDirect: true, isDeceased: true, city: "עפולה", marriages: [{ spouse: "מרגלית ז\"ל", children: [{ id: "2-1", name: "יאיר" }] }] },
+            { id: "3", name: "מרים", isDirect: true, city: "ירושלים", marriages: [{ spouse: "יוסי לוי ז\"ל", children: [{ id: "3-1", name: "אילן", marriages: [{ spouse: "מירי", children: [{ id: "3-1-1", name: "עדן" }, { id: "3-1-2", name: "בר" }, { id: "3-1-3", name: "טל" }] }] }, { id: "3-2", name: "גבי", marriages: [{ spouse: "אורה" }] }, { id: "3-3", name: "סיגי" }] }] },
             { id: "4", name: "פנינה", isDirect: true, marriages: [{ spouse: "קלוד דרמוני" }] },
             { id: "5", name: "עמירם", isDirect: true, marriages: [{ spouse: "שמחה" }] },
             { id: "6", name: "שושנה", isDirect: true, marriages: [{ spouse: "ג'ימי" }] },
