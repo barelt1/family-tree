@@ -8,28 +8,30 @@
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; overflow-x: auto; }
     
-    /* קווים מוליכים ומבנה היררכי רציף */
+    /* קווים מוליכים ומבנה היררכי רציף בלבד */
     .tree ul {
       padding-top: 20px;
       position: relative;
       display: flex;
       justify-content: center;
-      gap: 15px;
+      margin: 0;
+      padding-left: 0;
     }
 
     .tree li {
       text-align: center;
       list-style-type: none;
       position: relative;
-      padding: 20px 8px 0 8px;
+      padding: 20px 12px 0 12px;
     }
 
+    /* קווים אופקיים ואנכיים שמתחברים לכל הילדים */
     .tree li::before, .tree li::after {
       content: '';
       position: absolute;
       top: 0;
       right: 50%;
-      border-top: 2px solid #94a3b8;
+      border-top: 2px solid #64748b;
       width: 50%;
       height: 20px;
     }
@@ -37,9 +39,10 @@
     .tree li::after {
       right: auto;
       left: 50%;
-      border-left: 2px solid #94a3b8;
+      border-left: 2px solid #64748b;
     }
 
+    /* הסרת קווים מיותרים כשיש רק ילד יחיד */
     .tree li:only-child::after, .tree li:only-child::before {
       display: none;
     }
@@ -48,30 +51,34 @@
       padding-top: 0;
     }
 
-    .tree li:first-child::before, .tree li:last-child::after {
+    /* קטימת הקו האופקי בילד הראשון והאחרון */
+    .tree li:first-child::before {
+      border: 0 none;
+    }
+    .tree li:last-child::after {
       border: 0 none;
     }
 
+    /* עיגול פינות החיבור בקצוות */
     .tree li:last-child::before {
-      border-right: 2px solid #94a3b8;
+      border-right: 2px solid #64748b;
       border-radius: 0 6px 0 0;
     }
-
     .tree li:first-child::after {
       border-radius: 6px 0 0 0;
     }
 
+    /* קו יורד מרכזי מההורים למטה */
     .tree ul ul::before {
       content: '';
       position: absolute;
       top: 0;
       left: 50%;
-      border-left: 2px solid #94a3b8;
+      border-left: 2px solid #64748b;
       width: 0;
       height: 20px;
     }
 
-    /* מעטפת גלילה גמישה למניעת חיתוך בצדדים בעת זום */
     .tree-wrapper {
       min-width: max-content;
       padding: 40px;
@@ -110,7 +117,7 @@
     </div>
   </header>
 
-  <!-- אזור העץ הרספונסיבי -->
+  <!-- אזור העץ -->
   <main class="flex-1 overflow-auto w-full">
     <div class="tree-wrapper flex justify-center">
       <div class="tree" id="tree-root"></div>
@@ -141,7 +148,7 @@
           children: [
             { id: "1", name: "ברכה", isDirect: true, city: "ירושלים", marriages: [{ spouse: "מרדכי ודעי ז\"ל", children: [{ id: "1-1", name: "סעדיה" }, { id: "1-2", name: "אילנה" }] }] },
             { id: "2", name: "יעקב ז\"ל", isDirect: true, isDeceased: true, city: "עפולה", marriages: [{ spouse: "מרים", children: [{ id: "2-1", name: "יאיר" }] }] },
-            { id: "3", name: "מרים", isDirect: true, city: "ירושלים", marriages: [{ spouse: "יוסי לוי ז\"ל", children: [{ id: "3-1", name: "אילן", marriages: [{ spouse: "מירי" }] }] }] },
+            { id: "3", name: "מרים", isDirect: true, city: "ירושלים", marriages: [{ spouse: "יוסי לוי ז\"ל", children: [{ id: "3-1", name: "אילן", marriages: [{ spouse: "מירי" }] }, { id: "3-2", name: "גבי", marriages: [{ spouse: "אורה" }] }, { id: "3-3", name: "סיגי" }] }] },
             { id: "4", name: "פנינה", isDirect: true, marriages: [{ spouse: "קלוד דרמוני" }] },
             { id: "5", name: "עמירם", isDirect: true, marriages: [{ spouse: "שמחה" }] },
             { id: "6", name: "שושנה", isDirect: true, marriages: [{ spouse: "ג'ימי" }] },
@@ -159,7 +166,7 @@
 
     function saveTree() {
       localStorage.setItem('familyTreeData', JSON.stringify(familyTree));
-      document.getElementById('tree-root').innerHTML = renderTree(familyTree);
+      renderFullTree();
     }
 
     function checkPassword(e) {
@@ -171,16 +178,15 @@
       }
     }
 
-    function renderTree(node) {
-      let html = '<ul><li>';
+    function renderNode(node) {
+      let html = '<li>';
       
-      // כרטיסיית אדם מרכזי
-      html += `<div class="inline-flex gap-1 items-center bg-white p-1.5 rounded-xl shadow border border-slate-300">
+      // קובית אדם + בני זוג
+      html += `<div class="inline-flex gap-1 items-center bg-white p-1.5 rounded-xl shadow border border-slate-300 relative z-10">
         <div onclick='openPanel("${node.id}")' class="px-3.5 py-1.5 rounded-lg cursor-pointer transition font-semibold text-sm ${node.isDirect !== false ? 'bg-amber-300 text-amber-950 hover:bg-amber-400' : 'bg-slate-200 hover:bg-slate-300'}">
           ${node.name}
         </div>`;
 
-      // תצוגת בני/בנות זוג
       if (node.marriages && node.marriages.length > 0) {
         node.marriages.forEach((m, mIdx) => {
           if (m.spouse) {
@@ -192,21 +198,30 @@
       }
       html += '</div>';
 
-      // יצירת ענפים נפרדים לנישואים מרובים/שניים
-      if (node.marriages && node.marriages.some(m => m.children && m.children.length > 0)) {
-        html += '<ul>';
-        node.marriages.forEach((m) => {
+      // איגוד כל הילדים תחת תגית <ul> אחת בלבד
+      let allChildren = [];
+      if (node.marriages) {
+        node.marriages.forEach(m => {
           if (m.children && m.children.length > 0) {
-            m.children.forEach(child => {
-              html += renderTree(child);
-            });
+            allChildren = allChildren.concat(m.children);
           }
+        });
+      }
+
+      if (allChildren.length > 0) {
+        html += '<ul>';
+        allChildren.forEach(child => {
+          html += renderNode(child);
         });
         html += '</ul>';
       }
 
-      html += '</li></ul>';
+      html += '</li>';
       return html;
+    }
+
+    function renderFullTree() {
+      document.getElementById('tree-root').innerHTML = '<ul>' + renderNode(familyTree) + '</ul>';
     }
 
     function findNode(node, id) {
@@ -256,7 +271,6 @@
           </span>
         </div>
 
-        <!-- עריכת פרטים אישיים -->
         <div class="space-y-3 border-b pb-4">
           <h4 class="font-bold text-xs text-gray-500">פרטים אישיים:</h4>
           <div>
@@ -270,9 +284,8 @@
           <button onclick="savePersonDetails('${person.id}')" class="w-full bg-amber-500 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-amber-600 shadow-sm">שמור פרטים</button>
         </div>
 
-        <!-- נישואים ובני/בנות זוג -->
         <div class="space-y-3 border-b pb-4">
-          <h4 class="font-bold text-xs text-gray-500">בני/בנות זוג (תמיכה בנישואים שניים):</h4>
+          <h4 class="font-bold text-xs text-gray-500">בני/בנות זוג:</h4>
           ${person.marriages.map((m, idx) => `
             <div class="p-2 bg-slate-50 border rounded-lg space-y-2">
               <label class="block text-xs text-gray-500">בן/בת זוג #${idx + 1}:</label>
@@ -283,7 +296,6 @@
           <button onclick="saveSpouses('${person.id}')" class="w-full bg-amber-500 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-amber-600 shadow-sm">שמור נישואים</button>
         </div>
 
-        <!-- הוספת צאצא -->
         <div class="space-y-3 border-b pb-4">
           <h4 class="font-bold text-xs text-gray-500">הוספת צאצא (ילד/ה):</h4>
           <div>
@@ -298,7 +310,6 @@
           <button onclick="addChild('${person.id}')" class="w-full bg-emerald-600 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-emerald-700 shadow-sm">+ הוסף צאצא לעץ</button>
         </div>
 
-        <!-- מחיקת אדם -->
         ${person.id !== 'root' ? `
           <div class="pt-2">
             <button onclick="removePerson('${person.id}')" class="w-full bg-red-100 text-red-600 hover:bg-red-200 py-2 rounded-lg text-xs font-bold transition">
@@ -393,7 +404,7 @@
       }
     }
 
-    document.getElementById('tree-root').innerHTML = renderTree(familyTree);
+    renderFullTree();
   </script>
 </body>
 </html>
