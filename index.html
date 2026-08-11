@@ -37,7 +37,6 @@
     }
 
     /* 2. ציר אופקי המחבר בין האחים */
-    /* ::before מייצג את החצי השמאלי של הקו האופקי */
     .tree li::before {
       content: '';
       position: absolute;
@@ -47,7 +46,6 @@
       border-top: 2px solid #64748b;
     }
 
-    /* ::after מייצג את החצי הימני של הקו האופקי */
     .tree li::after {
       content: '';
       position: absolute;
@@ -57,14 +55,9 @@
       border-top: 2px solid #64748b;
     }
 
-    /* תיקון כיוונים ל-RTL (מימין לשמאל): */
-    /* הילד הראשון (ימני ביותר) - מוחקים את הקו הפונה ימינה (::after) */
+    /* תיקון כיוונים ל-RTL (מימין לשמאל) */
     .tree li:first-child::after { border-top: none; }
-
-    /* הילד האחרון (שמאלי ביותר) - מוחקים את הקו הפונה שמאלה (::before) */
     .tree li:last-child::before { border-top: none; }
-
-    /* ילד יחיד - מוחקים את שני הקווים האופקיים */
     .tree li:only-child::before, .tree li:only-child::after { border-top: none; }
 
     /* 3. קו אנכי יורד מהציר האופקי ישירות לכל קוביה */
@@ -83,7 +76,7 @@
       transform: translateX(-50%);
     }
 
-    /* הסרת הקו האנכי רק מעל ראש העץ (אסתר) */
+    /* הסרת הקו האנכי מעל ראש העץ (אסתר) */
     .tree > ul > li > .node-box::before {
       display: none;
     }
@@ -119,9 +112,6 @@
     <div class="flex gap-2">
       <button onclick="exportData()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-medium transition shadow-sm">
         📥 הורד גיבוי נתונים
-      </button>
-      <button onclick="resetData()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs px-3 py-2 rounded-lg font-medium transition">
-        🔄 איפוס לברירת מחדל
       </button>
     </div>
   </header>
@@ -160,7 +150,11 @@
             { id: "3", name: "מרים", isDirect: true, city: "ירושלים", marriages: [{ spouse: "יוסי לוי ז\"ל", children: [{ id: "3-1", name: "אילן", marriages: [{ spouse: "מירי", children: [{ id: "3-1-1", name: "עדן" }, { id: "3-1-2", name: "בר" }, { id: "3-1-3", name: "טל" }] }] }, { id: "3-2", name: "גבי", marriages: [{ spouse: "אורה" }] }, { id: "3-3", name: "סיגי" }] }] },
             { id: "4", name: "פנינה", isDirect: true, marriages: [{ spouse: "קלוד דרמוני" }] },
             { id: "5", name: "עמירם", isDirect: true, marriages: [{ spouse: "שמחה" }] },
-            { id: "6", name: "שושנה", isDirect: true, marriages: [{ spouse: "ג'ימי" }] },
+            { id: "6", name: "שושנה", isDirect: true, marriages: [
+                { spouse: "ג'ימי", children: [{ id: "6-1", name: "אייל" }, { id: "6-2", name: "רון" }] },
+                { spouse: "ניסן", children: [{ id: "6-3", name: "אורלי" }, { id: "6-4", name: "קובי" }] }
+              ] 
+            },
             { id: "7", name: "רחל", isDirect: true, marriages: [{ spouse: "אליהו אבוטבול ז\"ל" }] },
             { id: "8", name: "דוד", isDirect: true, marriages: [{ spouse: "נילה" }] },
             { id: "9", name: "סימה", isDirect: true, marriages: [{ spouse: "שלום קיסר" }] },
@@ -207,22 +201,35 @@
       }
       html += '</div>';
 
-      // איגוד הילדים תחת תגית ul אחת
-      let allChildren = [];
-      if (node.marriages) {
-        node.marriages.forEach(m => {
-          if (m.children && m.children.length > 0) {
-            allChildren = allChildren.concat(m.children);
-          }
-        });
-      }
-
-      if (allChildren.length > 0) {
-        html += '<ul>';
-        allChildren.forEach(child => {
-          html += renderNode(child);
-        });
-        html += '</ul>';
+      // טיפול בהפרדה ויזואלית של נישואים שניים
+      if (node.marriages && node.marriages.length > 0) {
+        const marriagesWithKids = node.marriages.filter(m => m.children && m.children.length > 0);
+        
+        if (marriagesWithKids.length > 1) {
+          // כמה מערכות נישואים עם ילדים -> פיצול לענפים נפרדים עם תגיות זיהוי!
+          html += '<ul>';
+          marriagesWithKids.forEach(m => {
+            html += `<li>
+              <div class="node-box">
+                <span class="bg-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded-full border border-slate-300 font-medium">
+                  מנישואים ל: ${m.spouse || 'בן/בת זוג'}
+                </span>
+              </div>
+              <ul>`;
+            m.children.forEach(child => {
+              html += renderNode(child);
+            });
+            html += `</ul></li>`;
+          });
+          html += '</ul>';
+        } else if (marriagesWithKids.length === 1) {
+          // נישואים יחידים -> תצוגת ילדים רגילה ונקייה
+          html += '<ul>';
+          marriagesWithKids[0].children.forEach(child => {
+            html += renderNode(child);
+          });
+          html += '</ul>';
+        }
       }
 
       html += '</li>';
@@ -273,11 +280,24 @@
       if (!person.marriages) person.marriages = [{ spouse: "", children: [] }];
 
       content.innerHTML = `
-        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
-          <h3 class="font-bold text-gray-900 text-lg">${person.name}</h3>
-          <span class="text-xs px-2 py-0.5 rounded-full ${person.isDirect !== false ? 'bg-amber-200 text-amber-800' : 'bg-slate-200 text-slate-800'}">
-            ${person.isDirect !== false ? 'צאצא ישיר' : 'בן/בת זוג'}
-          </span>
+        <!-- תמונת פרופיל בכרטיס -->
+        <div class="flex flex-col items-center gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-200 text-center">
+          <div class="relative w-24 h-24 rounded-full overflow-hidden border-2 border-amber-400 bg-amber-100 flex items-center justify-center text-amber-800 font-bold text-3xl shadow-sm">
+            ${person.photo 
+              ? `<img src="${person.photo}" alt="${person.name}" class="w-full h-full object-cover">` 
+              : `<span>${person.name[0]}</span>`}
+          </div>
+          <div>
+            <h3 class="font-bold text-gray-900 text-lg">${person.name}</h3>
+            <span class="text-xs px-2.5 py-0.5 rounded-full ${person.isDirect !== false ? 'bg-amber-200 text-amber-800' : 'bg-slate-200 text-slate-800'}">
+              ${person.isDirect !== false ? 'צאצא ישיר' : 'בן/בת זוג'}
+            </span>
+          </div>
+          <!-- כפתור העלאת תמונה -->
+          <label class="cursor-pointer bg-white border border-amber-300 text-amber-800 text-xs px-3 py-1.5 rounded-lg hover:bg-amber-100 font-medium transition shadow-sm">
+            📷 העלה/שנה תמונת פרופיל
+            <input type="file" accept="image/*" class="hidden" onchange="uploadPhoto(event, '${person.id}')">
+          </label>
         </div>
 
         <div class="space-y-3 border-b pb-4">
@@ -329,6 +349,22 @@
       `;
 
       document.getElementById('side-panel').classList.remove('-translate-x-full');
+    }
+
+    function uploadPhoto(event, nodeId) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const person = findNode(familyTree, nodeId);
+          if (person) {
+            person.photo = e.target.result;
+            saveTree();
+            openPanel(nodeId);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     }
 
     function savePersonDetails(id) {
@@ -402,15 +438,6 @@
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-    }
-
-    function resetData() {
-      if (confirm("האם לאפס את הנתונים לנתוני המקור?")) {
-        localStorage.removeItem('familyTreeData');
-        familyTree = defaultTree;
-        saveTree();
-        closePanel();
-      }
     }
 
     renderFullTree();
