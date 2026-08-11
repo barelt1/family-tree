@@ -6,25 +6,82 @@
   <title>עץ משפחת לוי - מורשת אסתר</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; }
-    .tree ul { padding-top: 20px; position: relative; display: flex; justify-content: center; }
-    .tree li { text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; }
-    .tree li::before, .tree li::after {
-      content: ''; position: absolute; top: 0; right: 50%; border-top: 2px solid #cbd5e1; width: 50%; height: 20px;
+    body { font-family: system-ui, -apple-system, sans-serif; overflow-x: auto; }
+    
+    /* קווים מוליכים ומבנה היררכי רציף */
+    .tree ul {
+      padding-top: 20px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
     }
-    .tree li::after { right: auto; left: 50%; border-left: 2px solid #cbd5e1; }
-    .tree li:only-child::after, .tree li:only-child::before { display: none; }
-    .tree li:only-child { padding-top: 0; }
-    .tree li:first-child::before, .tree li:last-child::after { border: 0 none; }
-    .tree li:last-child::before { border-right: 2px solid #cbd5e1; border-radius: 0 5px 0 0; }
-    .tree li:first-child::after { border-radius: 5px 0 0 0; }
-    .tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid #cbd5e1; width: 0; height: 20px; }
+
+    .tree li {
+      text-align: center;
+      list-style-type: none;
+      position: relative;
+      padding: 20px 8px 0 8px;
+    }
+
+    .tree li::before, .tree li::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 50%;
+      border-top: 2px solid #94a3b8;
+      width: 50%;
+      height: 20px;
+    }
+
+    .tree li::after {
+      right: auto;
+      left: 50%;
+      border-left: 2px solid #94a3b8;
+    }
+
+    .tree li:only-child::after, .tree li:only-child::before {
+      display: none;
+    }
+
+    .tree li:only-child {
+      padding-top: 0;
+    }
+
+    .tree li:first-child::before, .tree li:last-child::after {
+      border: 0 none;
+    }
+
+    .tree li:last-child::before {
+      border-right: 2px solid #94a3b8;
+      border-radius: 0 6px 0 0;
+    }
+
+    .tree li:first-child::after {
+      border-radius: 6px 0 0 0;
+    }
+
+    .tree ul ul::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      border-left: 2px solid #94a3b8;
+      width: 0;
+      height: 20px;
+    }
+
+    /* מעטפת גלילה גמישה למניעת חיתוך בצדדים בעת זום */
+    .tree-wrapper {
+      min-width: max-content;
+      padding: 40px;
+    }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen flex flex-col">
 
-  <!-- מסך התחברות עם סיסמה -->
-  <div id="login-screen" class="fixed inset-0 bg-amber-50/90 z-50 flex items-center justify-center p-4">
+  <!-- מסך התחברות -->
+  <div id="login-screen" class="fixed inset-0 bg-amber-50/95 z-50 flex items-center justify-center p-4">
     <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-amber-200 text-center">
       <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">🔒</div>
       <h1 class="text-2xl font-bold text-gray-800 mb-2">עץ משפחת לוי / אזולאי</h1>
@@ -38,7 +95,7 @@
   </div>
 
   <!-- כותרת עליונה -->
-  <header class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm">
+  <header class="bg-white border-b border-gray-200 px-6 py-4 flex flex-wrap gap-4 justify-between items-center shadow-sm sticky top-0 z-30">
     <div>
       <h1 class="text-xl font-bold text-gray-800">עץ משפחת לוי - מורשת אסתר</h1>
       <p class="text-xs text-gray-500">עץ אינטראקטיבי דיגיטלי</p>
@@ -53,15 +110,17 @@
     </div>
   </header>
 
-  <!-- אזור העץ -->
-  <main class="flex-1 overflow-auto p-8 flex justify-center items-start">
-    <div class="tree" id="tree-root"></div>
+  <!-- אזור העץ הרספונסיבי -->
+  <main class="flex-1 overflow-auto w-full">
+    <div class="tree-wrapper flex justify-center">
+      <div class="tree" id="tree-root"></div>
+    </div>
   </main>
 
   <!-- פאנל פרטים ועריכה צדדי -->
   <div id="side-panel" class="fixed inset-y-0 left-0 w-80 bg-white shadow-2xl border-r border-gray-200 p-6 z-40 transform -translate-x-full transition-transform duration-300 overflow-y-auto">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-lg font-bold text-gray-800" id="panel-title">כרטיס חבר משפחה</h2>
+      <h2 class="text-lg font-bold text-gray-800">כרטיס חבר משפחה</h2>
       <button onclick="closePanel()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
     </div>
     <div id="panel-content" class="space-y-4"></div>
@@ -76,24 +135,27 @@
       isDirect: true,
       isDeceased: true,
       city: "ירושלים",
-      spouse: "חנני בן עמי",
-      children: [
-        { id: "1", name: "ברכה", isDirect: true, city: "ירושלים", spouse: "מרדכי ודעי ז\"ל", children: [{ id: "1-1", name: "סעדיה", isDirect: true }, { id: "1-2", name: "אילנה", isDirect: true }, { id: "1-3", name: "דוד", isDirect: true }] },
-        { id: "2", name: "יעקב ז\"ל", isDirect: true, isDeceased: true, city: "עפולה", spouse: "מרים", children: [{ id: "2-1", name: "יאיר", isDirect: true }, { id: "2-2", name: "רונלית", isDirect: true }, { id: "2-3", name: "עופר", isDirect: true }] },
-        { id: "3", name: "מרים", isDirect: true, city: "ירושלים", spouse: "יוסי לוי ז\"ל", children: [{ id: "3-1", name: "אילן", isDirect: true, spouse: "מירי" }, { id: "3-2", name: "גבי", isDirect: true, spouse: "אורה" }, { id: "3-3", name: "סיגל", isDirect: true, spouse: "שבי נביא" }] },
-        { id: "4", name: "פנינה", isDirect: true, city: "ירושלים", spouse: "קלוד דרמוני" },
-        { id: "5", name: "עמירם", isDirect: true, city: "ירושלים", spouse: "שמחה" },
-        { id: "6", name: "שושנה", isDirect: true, city: "באר שבע - ברזיל", spouse: "ג'ימי" },
-        { id: "7", name: "רחל", isDirect: true, city: "מושב פצאל", spouse: "אליהו אבוטבול ז\"ל" },
-        { id: "8", name: "דוד", isDirect: true, city: "באר שבע", spouse: "נילה" },
-        { id: "9", name: "סימה", isDirect: true, city: "רחובות - ארה\"ב", spouse: "שלום קיסר" },
-        { id: "10", name: "בת שבע", isDirect: true, city: "ירושלים", spouse: "אדי בן חיים ז\"ל" },
-        { id: "11", name: "רות", isDirect: true, city: "ירושלים", spouse: "יוחנן טולדאנו" }
+      marriages: [
+        {
+          spouse: "חנני בן עמי",
+          children: [
+            { id: "1", name: "ברכה", isDirect: true, city: "ירושלים", marriages: [{ spouse: "מרדכי ודעי ז\"ל", children: [{ id: "1-1", name: "סעדיה" }, { id: "1-2", name: "אילנה" }] }] },
+            { id: "2", name: "יעקב ז\"ל", isDirect: true, isDeceased: true, city: "עפולה", marriages: [{ spouse: "מרים", children: [{ id: "2-1", name: "יאיר" }] }] },
+            { id: "3", name: "מרים", isDirect: true, city: "ירושלים", marriages: [{ spouse: "יוסי לוי ז\"ל", children: [{ id: "3-1", name: "אילן", marriages: [{ spouse: "מירי" }] }] }] },
+            { id: "4", name: "פנינה", isDirect: true, marriages: [{ spouse: "קלוד דרמוני" }] },
+            { id: "5", name: "עמירם", isDirect: true, marriages: [{ spouse: "שמחה" }] },
+            { id: "6", name: "שושנה", isDirect: true, marriages: [{ spouse: "ג'ימי" }] },
+            { id: "7", name: "רחל", isDirect: true, marriages: [{ spouse: "אליהו אבוטבול ז\"ל" }] },
+            { id: "8", name: "דוד", isDirect: true, marriages: [{ spouse: "נילה" }] },
+            { id: "9", name: "סימה", isDirect: true, marriages: [{ spouse: "שלום קיסר" }] },
+            { id: "10", name: "בת שבע", isDirect: true, marriages: [{ spouse: "אדי בן חיים ז\"ל" }] },
+            { id: "11", name: "רות", isDirect: true, marriages: [{ spouse: "יוחנן טולדאנו" }] }
+          ]
+        }
       ]
     };
 
     let familyTree = JSON.parse(localStorage.getItem('familyTreeData')) || defaultTree;
-    let selectedNodeId = null;
 
     function saveTree() {
       localStorage.setItem('familyTreeData', JSON.stringify(familyTree));
@@ -102,8 +164,7 @@
 
     function checkPassword(e) {
       e.preventDefault();
-      const val = document.getElementById('pass-input').value;
-      if (val === PASSWORD) {
+      if (document.getElementById('pass-input').value === PASSWORD) {
         document.getElementById('login-screen').classList.add('hidden');
       } else {
         document.getElementById('error-msg').classList.remove('hidden');
@@ -112,130 +173,200 @@
 
     function renderTree(node) {
       let html = '<ul><li>';
-      html += `<div class="inline-flex gap-1 items-center bg-white p-1 rounded-xl shadow border border-gray-200">
-        <div onclick='openPanel("${node.id}")' class="px-3 py-1.5 rounded-lg cursor-pointer transition font-semibold text-sm ${node.isDirect !== false ? 'bg-amber-300 text-amber-950 hover:bg-amber-400' : 'bg-gray-200 hover:bg-gray-300'}">
+      
+      // כרטיסיית אדם מרכזי
+      html += `<div class="inline-flex gap-1 items-center bg-white p-1.5 rounded-xl shadow border border-slate-300">
+        <div onclick='openPanel("${node.id}")' class="px-3.5 py-1.5 rounded-lg cursor-pointer transition font-semibold text-sm ${node.isDirect !== false ? 'bg-amber-300 text-amber-950 hover:bg-amber-400' : 'bg-slate-200 hover:bg-slate-300'}">
           ${node.name}
         </div>`;
-      if (node.spouse) {
-        html += `<div onclick='openPanel("${node.id}", true)' class="bg-gray-200 text-gray-800 hover:bg-gray-300 px-3 py-1.5 rounded-lg cursor-pointer text-sm">
-          ${node.spouse}
-        </div>`;
+
+      // תצוגת בני/בנות זוג
+      if (node.marriages && node.marriages.length > 0) {
+        node.marriages.forEach((m, mIdx) => {
+          if (m.spouse) {
+            html += `<div onclick='openPanel("${node.id}", ${mIdx})' class="bg-slate-200 text-slate-800 hover:bg-slate-300 px-3 py-1.5 rounded-lg cursor-pointer text-sm">
+              ${m.spouse}
+            </div>`;
+          }
+        });
       }
       html += '</div>';
 
-      if (node.children && node.children.length > 0) {
+      // יצירת ענפים נפרדים לנישואים מרובים/שניים
+      if (node.marriages && node.marriages.some(m => m.children && m.children.length > 0)) {
         html += '<ul>';
-        node.children.forEach(child => {
-          html += renderTree(child);
+        node.marriages.forEach((m) => {
+          if (m.children && m.children.length > 0) {
+            m.children.forEach(child => {
+              html += renderTree(child);
+            });
+          }
         });
         html += '</ul>';
       }
+
       html += '</li></ul>';
       return html;
     }
 
     function findNode(node, id) {
       if (node.id === id) return node;
-      if (node.children) {
-        for (let child of node.children) {
-          let found = findNode(child, id);
-          if (found) return found;
+      if (node.marriages) {
+        for (let m of node.marriages) {
+          if (m.children) {
+            for (let child of m.children) {
+              let found = findNode(child, id);
+              if (found) return found;
+            }
+          }
         }
       }
       return null;
     }
 
-    function openPanel(nodeId, isSpouse = false) {
-      selectedNodeId = nodeId;
-      const person = findNode(familyTree, nodeId);
-      const panel = document.getElementById('side-panel');
-      const content = document.getElementById('panel-content');
+    function deleteNode(node, id) {
+      if (!node.marriages) return false;
+      for (let m of node.marriages) {
+        if (m.children) {
+          const idx = m.children.findIndex(c => c.id === id);
+          if (idx !== -1) {
+            m.children.splice(idx, 1);
+            return true;
+          }
+          for (let child of m.children) {
+            if (deleteNode(child, id)) return true;
+          }
+        }
+      }
+      return false;
+    }
 
+    function openPanel(nodeId, marriageIdx = null) {
+      const person = findNode(familyTree, nodeId);
+      const content = document.getElementById('panel-content');
       if (!person) return;
 
-      if (isSpouse) {
-        content.innerHTML = `
-          <div class="p-3 bg-gray-100 rounded-xl border border-gray-200">
-            <h3 class="font-bold text-gray-900 text-lg">${person.spouse}</h3>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-800">בן/בת זוג</span>
-          </div>
-          <div class="space-y-3 pt-2">
-            <label class="block text-xs font-semibold text-gray-600">שם בן/בת הזוג:</label>
-            <input type="text" id="edit-spouse-name" value="${person.spouse || ''}" class="w-full px-3 py-2 border rounded-lg text-sm">
-            <button onclick="saveSpouseEdit('${person.id}')" class="w-full bg-amber-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-amber-600">שמור שינויים</button>
-          </div>
-        `;
-      } else {
-        content.innerHTML = `
-          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
-            <h3 class="font-bold text-gray-900 text-lg">${person.name}</h3>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-amber-200 text-amber-800">צאצא ישיר</span>
-          </div>
-          
-          <!-- טופס עריכת פרטים -->
-          <div class="space-y-3 pt-2 border-b pb-4">
-            <h4 class="font-bold text-xs text-gray-500">עריכת פרטים:</h4>
-            <div>
-              <label class="block text-xs text-gray-600">שם מלא:</label>
-              <input type="text" id="edit-name" value="${person.name}" class="w-full px-3 py-1.5 border rounded-lg text-sm">
-            </div>
-            <div>
-              <label class="block text-xs text-gray-600">עיר מגורים:</label>
-              <input type="text" id="edit-city" value="${person.city || ''}" class="w-full px-3 py-1.5 border rounded-lg text-sm">
-            </div>
-            <div>
-              <label class="block text-xs text-gray-600">שם בן/בת זוג:</label>
-              <input type="text" id="edit-spouse" value="${person.spouse || ''}" class="w-full px-3 py-1.5 border rounded-lg text-sm">
-            </div>
-            <button onclick="saveNodeEdit('${person.id}')" class="w-full bg-amber-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-amber-600 shadow-sm">שמור עדכונים</button>
-          </div>
+      if (!person.marriages) person.marriages = [{ spouse: "", children: [] }];
 
-          <!-- הוספת צאצא (ילד/ה) -->
-          <div class="space-y-3 pt-2">
-            <h4 class="font-bold text-xs text-gray-500">הוספת צאצא (ילד/ה):</h4>
-            <input type="text" id="new-child-name" placeholder="שם הילד/ה..." class="w-full px-3 py-1.5 border rounded-lg text-sm">
-            <button onclick="addChild('${person.id}')" class="w-full bg-emerald-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 shadow-sm">+ הוסף צאצא לעץ</button>
-          </div>
-        `;
-      }
+      content.innerHTML = `
+        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
+          <h3 class="font-bold text-gray-900 text-lg">${person.name}</h3>
+          <span class="text-xs px-2 py-0.5 rounded-full ${person.isDirect !== false ? 'bg-amber-200 text-amber-800' : 'bg-slate-200 text-slate-800'}">
+            ${person.isDirect !== false ? 'צאצא ישיר' : 'בן/בת זוג'}
+          </span>
+        </div>
 
-      panel.classList.remove('-translate-x-full');
+        <!-- עריכת פרטים אישיים -->
+        <div class="space-y-3 border-b pb-4">
+          <h4 class="font-bold text-xs text-gray-500">פרטים אישיים:</h4>
+          <div>
+            <label class="block text-xs text-gray-600">שם מלא:</label>
+            <input type="text" id="edit-name" value="${person.name}" class="w-full px-3 py-1.5 border rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-600">עיר מגורים:</label>
+            <input type="text" id="edit-city" value="${person.city || ''}" class="w-full px-3 py-1.5 border rounded-lg text-sm">
+          </div>
+          <button onclick="savePersonDetails('${person.id}')" class="w-full bg-amber-500 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-amber-600 shadow-sm">שמור פרטים</button>
+        </div>
+
+        <!-- נישואים ובני/בנות זוג -->
+        <div class="space-y-3 border-b pb-4">
+          <h4 class="font-bold text-xs text-gray-500">בני/בנות זוג (תמיכה בנישואים שניים):</h4>
+          ${person.marriages.map((m, idx) => `
+            <div class="p-2 bg-slate-50 border rounded-lg space-y-2">
+              <label class="block text-xs text-gray-500">בן/בת זוג #${idx + 1}:</label>
+              <input type="text" id="spouse-${idx}" value="${m.spouse || ''}" placeholder="שם בן/בת הזוג..." class="w-full px-2.5 py-1 border rounded text-sm">
+            </div>
+          `).join('')}
+          <button onclick="addSpouseSession('${person.id}')" class="w-full bg-slate-200 text-slate-700 py-1.5 rounded-lg text-xs font-medium hover:bg-slate-300">+ הוסף בן/בת זוג נוסף (נישואים שניים)</button>
+          <button onclick="saveSpouses('${person.id}')" class="w-full bg-amber-500 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-amber-600 shadow-sm">שמור נישואים</button>
+        </div>
+
+        <!-- הוספת צאצא -->
+        <div class="space-y-3 border-b pb-4">
+          <h4 class="font-bold text-xs text-gray-500">הוספת צאצא (ילד/ה):</h4>
+          <div>
+            <label class="block text-xs text-gray-600">בחר מערכת נישואים:</label>
+            <select id="child-marriage-idx" class="w-full px-2.5 py-1.5 border rounded-lg text-sm bg-white">
+              ${person.marriages.map((m, idx) => `
+                <option value="${idx}">מנישואים ל: ${m.spouse || 'ללא שם (' + (idx+1) + ')'}</option>
+              `).join('')}
+            </select>
+          </div>
+          <input type="text" id="new-child-name" placeholder="שם הילד/ה..." class="w-full px-3 py-1.5 border rounded-lg text-sm">
+          <button onclick="addChild('${person.id}')" class="w-full bg-emerald-600 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-emerald-700 shadow-sm">+ הוסף צאצא לעץ</button>
+        </div>
+
+        <!-- מחיקת אדם -->
+        ${person.id !== 'root' ? `
+          <div class="pt-2">
+            <button onclick="removePerson('${person.id}')" class="w-full bg-red-100 text-red-600 hover:bg-red-200 py-2 rounded-lg text-xs font-bold transition">
+              🗑️ מחק אדם זה מהעץ
+            </button>
+          </div>
+        ` : ''}
+      `;
+
+      document.getElementById('side-panel').classList.remove('-translate-x-full');
     }
 
-    function saveNodeEdit(nodeId) {
-      const person = findNode(familyTree, nodeId);
-      if (person) {
-        person.name = document.getElementById('edit-name').value;
-        person.city = document.getElementById('edit-city').value;
-        person.spouse = document.getElementById('edit-spouse').value;
+    function savePersonDetails(id) {
+      const p = findNode(familyTree, id);
+      if (p) {
+        p.name = document.getElementById('edit-name').value;
+        p.city = document.getElementById('edit-city').value;
         saveTree();
-        openPanel(nodeId);
+        openPanel(id);
       }
     }
 
-    function saveSpouseEdit(nodeId) {
-      const person = findNode(familyTree, nodeId);
-      if (person) {
-        person.spouse = document.getElementById('edit-spouse-name').value;
+    function addSpouseSession(id) {
+      const p = findNode(familyTree, id);
+      if (p) {
+        if (!p.marriages) p.marriages = [];
+        p.marriages.push({ spouse: "", children: [] });
         saveTree();
-        closePanel();
+        openPanel(id);
       }
     }
 
-    function addChild(nodeId) {
-      const childName = document.getElementById('new-child-name').value.trim();
-      if (!childName) return;
-
-      const person = findNode(familyTree, nodeId);
-      if (person) {
-        if (!person.children) person.children = [];
-        person.children.push({
-          id: Date.now().toString(),
-          name: childName,
-          isDirect: true
+    function saveSpouses(id) {
+      const p = findNode(familyTree, id);
+      if (p && p.marriages) {
+        p.marriages.forEach((m, idx) => {
+          const el = document.getElementById(`spouse-${idx}`);
+          if (el) m.spouse = el.value;
         });
         saveTree();
-        openPanel(nodeId);
+        openPanel(id);
+      }
+    }
+
+    function addChild(id) {
+      const childName = document.getElementById('new-child-name').value.trim();
+      const mIdx = parseInt(document.getElementById('child-marriage-idx').value);
+      if (!childName) return;
+
+      const p = findNode(familyTree, id);
+      if (p && p.marriages[mIdx]) {
+        if (!p.marriages[mIdx].children) p.marriages[mIdx].children = [];
+        p.marriages[mIdx].children.push({
+          id: Date.now().toString(),
+          name: childName,
+          isDirect: true,
+          marriages: [{ spouse: "", children: [] }]
+        });
+        saveTree();
+        openPanel(id);
+      }
+    }
+
+    function removePerson(id) {
+      if (confirm("האם אתה בטוח שברצונך למחוק אדם זה מהעץ?")) {
+        deleteNode(familyTree, id);
+        saveTree();
+        closePanel();
       }
     }
 
@@ -254,7 +385,7 @@
     }
 
     function resetData() {
-      if (confirm("האם אתה בטוח שברצונך לאפס את הנתונים לנתוני המקור?")) {
+      if (confirm("האם לאפס את הנתונים לנתוני המקור?")) {
         localStorage.removeItem('familyTreeData');
         familyTree = defaultTree;
         saveTree();
